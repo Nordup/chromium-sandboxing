@@ -19,8 +19,8 @@ env.Append(CXXFLAGS=['/std:c++20', '/DUNICODE', '/D_UNICODE', '/DNOMINMAX'],
             'C:/src/chromium/src/third_party/abseil-cpp/',
             'C:/src/chromium/src/third_party/boringssl/src/include/',
             'C:/src/chromium/src/third_party/protobuf/src/'],
-           LIBPATH=['./libs/'],
-           LIBS=['sandbox'],
+           LIBPATH=['./libs/', 'C:/src/chromium/src/out/sandbox_build/obj/buildtools/third_party/libc++/'],
+           LIBS=['sandbox', 'libc++'],
            LINKFLAGS=[])
 
 env.Program(target='sandbox', source='main.cpp')

@@ -1,33 +1,45 @@
 #include <sandbox/win/src/sandbox.h>
 #include <sandbox/win/src/sandbox_factory.h>
 #include <iostream>
+#include <shellapi.h>  // For CommandLineToArgvW
 
 using namespace std;
 
 int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service) {
-    if (0 != broker_service->Init()) {
+    if (0 != broker_service->Init(nullptr)) {
         wcout << L"Failed to initialize the BrokerServices object" << endl;
         return 1;
     }
 
     PROCESS_INFORMATION pi;
 
-    sandbox::TargetPolicy* policy = broker_service->CreatePolicy();
+    std::unique_ptr<sandbox::TargetPolicy> policy = broker_service->CreatePolicy();
+    sandbox::TargetConfig* config = policy->GetConfig();
 
-    // Here's where you set the security level of the sandbox. Doing a "goto definition" on any
-    // of these symbols usually gives you a good description of their usage and alternatives.
-    policy->SetJobLevel(sandbox::JOB_LOCKDOWN, 0);
-    policy->SetTokenLevel(sandbox::USER_RESTRICTED_SAME_ACCESS, sandbox::USER_LOCKDOWN);
-    policy->SetAlternateDesktop(true);
-    policy->SetDelayedIntegrityLevel(sandbox::INTEGRITY_LEVEL_LOW);
+    sandbox::ResultCode ret = config->SetJobLevel(sandbox::JobLevel::kLockdown, 0);
+    if (ret != sandbox::SBOX_ALL_OK) {
+        wcout << L"Failed to set job level" << endl;
+        return 1;
+    }
+
+    ret = config->SetTokenLevel(sandbox::TokenLevel::USER_RESTRICTED_SAME_ACCESS, sandbox::TokenLevel::USER_LOCKDOWN);
+    if (ret != sandbox::SBOX_ALL_OK) {
+        wcout << L"Failed to set token level" << endl;
+        return 1;
+    }
+
+    config->SetDesktop(sandbox::Desktop::kAlternateDesktop);
+    config->SetDelayedIntegrityLevel(sandbox::IntegrityLevel::INTEGRITY_LEVEL_LOW);
 
     //Add additional rules here (ie: file access exceptions) like so:
-    policy->AddRule(sandbox::TargetPolicy::SUBSYS_FILES, sandbox::TargetPolicy::FILES_ALLOW_ANY, "some/file/path");
+    ret = config->AllowFileAccess(sandbox::FileSemantics::kAllowAny, L"some/file/path");
+    if (ret != sandbox::SBOX_ALL_OK) {
+        wcout << L"Failed to set file access" << endl;
+        return 1;
+    }
 
-    sandbox::ResultCode result = broker_service->SpawnTarget(argv[0], GetCommandLineW(), policy, &pi);
-
-    policy->Release();
-    policy = NULL;
+    DWORD* last_error = nullptr;
+    sandbox::ResultCode result = broker_service->SpawnTarget(argv[0], GetCommandLineW(), std::move(policy), last_error, &pi);
 
     if (sandbox::SBOX_ALL_OK != result) {
         wcout << L"Sandbox failed to launch with the following result: " << result << endl;
@@ -38,9 +50,33 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
 
-    broker_service->WaitForAllTargets();
+    // broker_service->WaitForAllTargets();
 
     return 0;
+}
+
+void TryDoingSomethingBad() {
+    // Try to write to a protected directory
+    FILE* file = nullptr;
+    errno_t err = fopen_s(&file, "C:\\Windows\\System32\\test.txt", "w");
+    if (err == 0 && file) {
+        fprintf(file, "This should be blocked by the sandbox\n");
+        fclose(file);
+        wcout << L"Successfully wrote to protected directory (sandbox failed!)" << endl;
+    } else {
+        wcout << L"Could not write to protected directory (sandbox working!)" << endl;
+    }
+    
+    // Try to modify registry
+    HKEY key;
+    LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 
+                               0, KEY_WRITE, &key);
+    if (result == ERROR_SUCCESS) {
+        wcout << L"Successfully opened registry key for writing (sandbox failed!)" << endl;
+        RegCloseKey(key);
+    } else {
+        wcout << L"Could not open registry key for writing (sandbox working!)" << endl;
+    }
 }
 
 int RunChild(int argc, wchar_t* argv[]) {
@@ -67,33 +103,10 @@ int RunChild(int argc, wchar_t* argv[]) {
     return 0;
 }
 
-void TryDoingSomethingBad() {
-    // Try to write to a protected directory
-    FILE* file = fopen("C:\\Windows\\System32\\test.txt", "w");
-    if (file) {
-        fprintf(file, "This should be blocked by the sandbox\n");
-        fclose(file);
-        wcout << L"Successfully wrote to protected directory (sandbox failed!)" << endl;
-    } else {
-        wcout << L"Could not write to protected directory (sandbox working!)" << endl;
-    }
-    
-    // Try to modify registry
-    HKEY key;
-    LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 
-                               0, KEY_WRITE, &key);
-    if (result == ERROR_SUCCESS) {
-        wcout << L"Successfully opened registry key for writing (sandbox failed!)" << endl;
-        RegCloseKey(key);
-    } else {
-        wcout << L"Could not open registry key for writing (sandbox working!)" << endl;
-    }
-}
-
-int main(int argc, char* argv[]) {
+int wmain(int argc, wchar_t* argv[]) {
     sandbox::BrokerServices* broker_service = sandbox::SandboxFactory::GetBrokerServices();
 
-    // A non-NULL broker_service means that we are not running the the sandbox, 
+    // A non-NULL broker_service means that we are not running in the sandbox, 
     // and are therefore the parent process
     if(NULL != broker_service) {
         return RunParent(argc, argv, broker_service);
