@@ -5,5 +5,6 @@
         "xiosbase": "cpp",
         "numbers": "cpp",
         "type_traits": "cpp"
-    }
+    },
+    "C_Cpp.default.compilerPath": "clang-cl.exe"
 }

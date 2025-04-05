@@ -1,10 +1,20 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "Win64",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:/src/chromium/src/**"
+                "C:/src/chromium/src/**",
+                "C:/src/chromium/src/out/sandbox_build/gen/**",
+                "C:/src/chromium/src/buildtools/third_party/libc++/**",
+                "C:/src/chromium/src/third_party/perfetto/include/**",
+                "C:/src/chromium/src/out/sandbox_build/gen/third_party/perfetto/build_config/**",
+                "C:/src/chromium/src/out/sandbox_build/gen/third_party/perfetto/**",
+                "C:/src/chromium/src/base/allocator/partition_allocator/src/**",
+                "C:/src/chromium/src/out/sandbox_build/gen/base/allocator/partition_allocator/src/**",
+                "C:/src/chromium/src/third_party/abseil-cpp/**",
+                "C:/src/chromium/src/third_party/boringssl/src/include/**",
+                "C:/src/chromium/src/third_party/protobuf/src/**"
             ],
             "defines": [
                 "_DEBUG",
@@ -12,8 +22,8 @@
                 "_UNICODE"
             ],
             "windowsSdkVersion": "10.0.26100.0",
-            "compilerPath": "cl.exe",
-            "intelliSenseMode": "windows-msvc-x64"
+            "compilerPath": "C:/Program Files/LLVM/bin/clang-cl.exe",
+            "intelliSenseMode": "windows-clang-x64"
         }
     ],
     "version": 4

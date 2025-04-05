@@ -3,7 +3,8 @@
 
 import os
 
-env = Environment(CXX = 'clang-cl')
+env = Environment()
+env.Replace(CC = "clang-cl")
 
 env.Append(CXXFLAGS=['/std:c++20', '/DUNICODE', '/D_UNICODE', '/DNOMINMAX'],
            CPPPATH=[
