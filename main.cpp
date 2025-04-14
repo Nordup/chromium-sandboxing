@@ -52,6 +52,7 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
 
     // broker_service->WaitForAllTargets();
 
+    wcout << L"Successfully launched sandboxed process" << endl;
     return 0;
 }
 

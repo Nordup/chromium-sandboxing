@@ -32,6 +32,8 @@ link_directories(
     "C:/src/chromium/src/out/sandbox_build/obj/base/win"
     "C:/src/chromium/src/out/sandbox_build/win_clang_x64_for_rust_host_build_tools/rustlib/windows_x86_64_msvc_lib_v0_52"
     "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.43.34808/lib/x64"
+    "C:/src/chromium/src/out/sandbox_build/obj/sandbox/win"
+    "C:/src/chromium/src/out/sandbox_build/obj/sandbox"
 )
 
 # Output executable
@@ -55,4 +57,6 @@ target_link_libraries(sandbox_test
     base_allocator_partition_allocator_src_partition_alloc_allocator_base.dll.lib
     windows.0.52.0.lib
     delayimp.lib
+    common.lib
+    service_resolver.lib
 )
