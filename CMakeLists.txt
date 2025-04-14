@@ -60,3 +60,19 @@ target_link_libraries(sandbox_test
     common.lib
     service_resolver.lib
 )
+
+# Copy DLLs to executable directory
+add_custom_command(TARGET sandbox_test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "C:/src/chromium/src/out/sandbox_build/base.dll"
+        "C:/src/chromium/src/out/sandbox_build/libc++.dll"
+        "C:/src/chromium/src/out/sandbox_build/third_party_abseil-cpp_absl.dll"
+        "C:/src/chromium/src/out/sandbox_build/third_party_perfetto_libperfetto.dll"
+        "C:/src/chromium/src/out/sandbox_build/third_party_boringssl.dll"
+        "C:/src/chromium/src/out/sandbox_build/third_party_zlib.dll"
+        "C:/src/chromium/src/out/sandbox_build/base_allocator_partition_allocator_src_partition_alloc_raw_ptr.dll"
+        "C:/src/chromium/src/out/sandbox_build/base_allocator_partition_allocator_src_partition_alloc_allocator_shim.dll"
+        "C:/src/chromium/src/out/sandbox_build/base_allocator_partition_allocator_src_partition_alloc_allocator_core.dll"
+        "C:/src/chromium/src/out/sandbox_build/base_allocator_partition_allocator_src_partition_alloc_allocator_base.dll"
+        $<TARGET_FILE_DIR:sandbox_test>
+)
