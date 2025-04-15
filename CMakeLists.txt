@@ -37,7 +37,7 @@ link_directories(
 )
 
 # Output executable
-add_executable(sandbox_test main.cpp)
+add_executable(sandbox_test main.cpp BrokerServicesDelegateImpl.cpp)
 
 # Link required libraries
 target_link_libraries(sandbox_test

@@ -2,11 +2,14 @@
 #include <sandbox/win/src/sandbox_factory.h>
 #include <iostream>
 #include <shellapi.h>  // For CommandLineToArgvW
+#include "BrokerServicesDelegateImpl.h"
 
 using namespace std;
 
 int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service) {
-    if (0 != broker_service->Init(nullptr)) {
+    std::unique_ptr<BrokerServicesDelegateImpl> delegate = std::make_unique<BrokerServicesDelegateImpl>();
+
+    if (sandbox::SBOX_ALL_OK != broker_service->Init(std::move(delegate))) {
         wcout << L"Failed to initialize the BrokerServices object" << endl;
         return 1;
     }
@@ -28,7 +31,7 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
         return 1;
     }
 
-    config->SetDesktop(sandbox::Desktop::kAlternateDesktop);
+    config->SetDesktop(sandbox::Desktop::kDefault); // kAlternateDesktop
     config->SetDelayedIntegrityLevel(sandbox::IntegrityLevel::INTEGRITY_LEVEL_LOW);
 
     //Add additional rules here (ie: file access exceptions) like so:
@@ -38,9 +41,8 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
         return 1;
     }
 
-    DWORD* last_error = nullptr;
-    sandbox::ResultCode result = broker_service->SpawnTarget(argv[0], GetCommandLineW(), std::move(policy), last_error, &pi);
-
+    DWORD error_code = 0;
+    sandbox::ResultCode result = broker_service->SpawnTarget(argv[0], GetCommandLineW(), std::move(policy), &error_code, &pi);
     if (sandbox::SBOX_ALL_OK != result) {
         wcout << L"Sandbox failed to launch with the following result: " << result << endl;
         return 2;
