@@ -8,11 +8,11 @@ using namespace std;
 
 int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service) {
     std::unique_ptr<BrokerServicesDelegateImpl> delegate = std::make_unique<BrokerServicesDelegateImpl>();
-
     if (sandbox::SBOX_ALL_OK != broker_service->Init(std::move(delegate))) {
         wcout << L"Failed to initialize the BrokerServices object" << endl;
         return 1;
     }
+
 
     PROCESS_INFORMATION pi;
 
@@ -31,7 +31,14 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
         return 1;
     }
 
-    config->SetDesktop(sandbox::Desktop::kDefault); // kAlternateDesktop
+    
+    ret = broker_service->CreateAlternateDesktop(sandbox::Desktop::kAlternateDesktop);
+    if (ret != sandbox::SBOX_ALL_OK) {
+        wcout << L"Failed to create alternate desktop" << endl;
+        return 1;
+    }
+
+    config->SetDesktop(sandbox::Desktop::kAlternateDesktop);
     config->SetDelayedIntegrityLevel(sandbox::IntegrityLevel::INTEGRITY_LEVEL_LOW);
 
     //Add additional rules here (ie: file access exceptions) like so:
@@ -55,6 +62,8 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
     // broker_service->WaitForAllTargets();
 
     wcout << L"Successfully launched sandboxed process" << endl;
+
+    Sleep(30000);
     return 0;
 }
 
@@ -103,6 +112,7 @@ int RunChild(int argc, wchar_t* argv[]) {
 
     TryDoingSomethingBad();
 
+    wcout << L"Successfully lower token" << endl;
     return 0;
 }
 
