@@ -10,7 +10,7 @@ wchar_t* GetChildExecutablePath(wchar_t* argv0) {
     wchar_t* last_slash = wcsrchr(exe_path, L'\\');
     if (last_slash) {
         *(last_slash + 1) = L'\0';
-        wcscat_s(exe_path, MAX_PATH, L"sandbox_parent.exe");
+        wcscat_s(exe_path, MAX_PATH, L"sandbox_child.exe");
     }
     return exe_path;
 }
