@@ -80,7 +80,8 @@
         "chrono": "cpp",
         "codecvt": "cpp",
         "__locale": "cpp",
-        "cstdarg": "cpp"
+        "cstdarg": "cpp",
+        "*.inc": "cpp"
     },
     "C_Cpp.default.compilerPath": "clang-cl.exe"
 }

@@ -13,7 +13,6 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
         return 1;
     }
 
-
     PROCESS_INFORMATION pi;
 
     std::unique_ptr<sandbox::TargetPolicy> policy = broker_service->CreatePolicy();
@@ -30,7 +29,6 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
         wcout << L"Failed to set token level" << endl;
         return 1;
     }
-
     
     ret = broker_service->CreateAlternateDesktop(sandbox::Desktop::kAlternateDesktop);
     if (ret != sandbox::SBOX_ALL_OK) {
@@ -41,8 +39,8 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
     config->SetDesktop(sandbox::Desktop::kAlternateDesktop);
     config->SetDelayedIntegrityLevel(sandbox::IntegrityLevel::INTEGRITY_LEVEL_LOW);
 
-    //Add additional rules here (ie: file access exceptions) like so:
-    ret = config->AllowFileAccess(sandbox::FileSemantics::kAllowAny, L"some/file/path");
+    // Add additional rules here (ie: file access exceptions) like so:
+    ret = config->AllowFileAccess(sandbox::FileSemantics::kAllowAny, L"C:\\Users\\Nordup\\Documents\\Projects\\C++\\sandboxing\\build\\Debug\\sandbox_log.txt");
     if (ret != sandbox::SBOX_ALL_OK) {
         wcout << L"Failed to set file access" << endl;
         return 1;
@@ -54,54 +52,57 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
         wcout << L"Sandbox failed to launch with the following result: " << result << endl;
         return 2;
     }
+    ::ResumeThread(pi.hThread);
+
+    wcout << L"Successfully launched sandboxed process" << endl;
+
+    // Wait for the child process to complete
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+    DWORD exitCode;
+    if (GetExitCodeProcess(pi.hProcess, &exitCode)) {
+        wcout << L"Child process exited with code: " << exitCode << endl;
+    }
 
     // Just like CreateProcess, you need to close these yourself unless you need to reference them later
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
 
-    // broker_service->WaitForAllTargets();
-
-    wcout << L"Successfully launched sandboxed process" << endl;
-
-    Sleep(30000);
     return 0;
 }
 
-void TryDoingSomethingBad() {
+void TryDoingSomethingBad(FILE* logFile) {
     // Try to write to a protected directory
     FILE* file = nullptr;
-    errno_t err = fopen_s(&file, "C:\\Windows\\System32\\test.txt", "w");
+    errno_t err = fopen_s(&file, "C:\\Users\\Nordup\\Documents\\Projects\\C++\\sandboxing\\build\\Debug\\test.txt", "w");
     if (err == 0 && file) {
         fprintf(file, "This should be blocked by the sandbox\n");
         fclose(file);
-        wcout << L"Successfully wrote to protected directory (sandbox failed!)" << endl;
+        fprintf(logFile, "Successfully wrote to protected directory (sandbox failed!)\n");
     } else {
-        wcout << L"Could not write to protected directory (sandbox working!)" << endl;
-    }
-    
-    // Try to modify registry
-    HKEY key;
-    LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 
-                               0, KEY_WRITE, &key);
-    if (result == ERROR_SUCCESS) {
-        wcout << L"Successfully opened registry key for writing (sandbox failed!)" << endl;
-        RegCloseKey(key);
-    } else {
-        wcout << L"Could not open registry key for writing (sandbox working!)" << endl;
+        fprintf(logFile, "Could not write to protected directory (sandbox working!)\n");
     }
 }
 
 int RunChild(int argc, wchar_t* argv[]) {
+    FILE* logFile = nullptr;
+    errno_t err = fopen_s(&logFile, "sandbox_log.txt", "w");
+    if (err != 0 || !logFile) {
+        return 1;  // Failed to open log file
+    }
+
     sandbox::TargetServices* target_service = sandbox::SandboxFactory::GetTargetServices();
 
     if (NULL == target_service) {
-        wcout << L"Failed to retrieve target service" << endl;
-        return 1;
+        fprintf(logFile, "Failed to retrieve target service\n");
+        fclose(logFile);
+        return 2;
     }
 
     if (sandbox::SBOX_ALL_OK != target_service->Init()) {
-        wcout << L"failed to initialize target service" << endl;
-        return 2;
+        fprintf(logFile, "failed to initialize target service\n");
+        fclose(logFile);
+        return 3;
     }
 
     // Do any "unsafe" initialization code here, sandbox isn't active yet
@@ -110,9 +111,10 @@ int RunChild(int argc, wchar_t* argv[]) {
 
     // Any code executed at this point is now sandboxed!
 
-    TryDoingSomethingBad();
+    TryDoingSomethingBad(logFile);
 
-    wcout << L"Successfully lower token" << endl;
+    fprintf(logFile, "Successfully lower token\n");
+    fclose(logFile);
     return 0;
 }
 
