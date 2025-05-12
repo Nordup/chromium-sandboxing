@@ -4,7 +4,7 @@ project(sandbox_test CXX)
 # Force static runtime to match CEF
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 set(CMAKE_CXX_FLAGS_RELEASE "/MT /O2 /Ob2 /DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "/MTd /Od /Ob0 /D_DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "/MT /DNDEBUG")
 
 # Use Clang-cl
 set(CMAKE_C_COMPILER "clang-cl")
@@ -13,7 +13,7 @@ set(CMAKE_C_COMPILER_FRONTEND_VARIANT "MSVC")
 set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "MSVC")
 
 # Force C++20 using MSVC-compatible syntax
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /DUNICODE /D_UNICODE /DNOMINMAX")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /DUNICODE /D_UNICODE /DNOMINMAX /D_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH")
 
 # Include directories
 include_directories(
