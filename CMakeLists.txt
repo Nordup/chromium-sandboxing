@@ -54,19 +54,19 @@ target_link_libraries(sandbox_test
     oleaut32.lib
     uuid.lib
     # Additional Windows libraries
-    winmm.lib          # for timeGetTime, timeBeginPeriod, timeEndPeriod
-    shlwapi.lib        # for IsOS
-    propsys.lib        # for InitPropVariantFromCLSID
-    powrprof.lib       # for PowerDeterminePlatformRoleEx
-    shcore.lib         # for SetProcessDpiAwareness
-    ntdll.lib          # for NtQueryObject, RtlInitUnicodeString, NtDeleteKey
-    setupapi.lib       # for SetupDiGetClassDevsW, SetupDiEnumDeviceInfo
-    cfgmgr32.lib       # for CM_Get_Device_IDW
-    version.lib        # for VerQueryValueW, GetFileVersionInfoSizeW, GetFileVersionInfoW
-    ws2_32.lib         # for ioctlsocket
-    runtimeobject.lib  # for RoGetActivationFactory
-    dbghelp.lib        # for Sym* functions (debug symbols)
-    userenv.lib        # for DeriveAppContainerSidFromAppContainerName
+    winmm.lib
+    shlwapi.lib
+    propsys.lib
+    powrprof.lib
+    shcore.lib
+    ntdll.lib
+    setupapi.lib
+    cfgmgr32.lib
+    version.lib
+    ws2_32.lib
+    runtimeobject.lib
+    dbghelp.lib
+    userenv.lib
     delayimp.lib
     wbemuuid.lib
     mincore.lib
