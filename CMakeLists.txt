@@ -32,13 +32,8 @@ include_directories(
 
 # Library search paths
 link_directories(
-    # "C:/src/chromium/src/out/sandbox_build"
-    # "C:/src/chromium/src/out/sandbox_build/obj/sandbox/win"
-    # "C:/src/chromium/src/out/sandbox_build/obj/base/win"
-    "C:/src/chromium/src/out/sandbox_build/win_clang_x64_for_rust_host_build_tools/rustlib/windows_x86_64_msvc_lib_v0_52"
     "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.43.34808/lib/x64"
-    # "C:/src/chromium/src/out/sandbox_build/obj/sandbox/win"
-    # "C:/src/chromium/src/out/sandbox_build/obj/sandbox"
+    "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/um/x64"
     "C:/Users/Nordup/Downloads/cef_binary_136.1.4+g89c0a8c+chromium-136.0.7103.93_windows64_minimal/cef_binary_136.1.4+g89c0a8c+chromium-136.0.7103.93_windows64_minimal/Release"
 )
 
@@ -47,40 +42,32 @@ add_executable(sandbox_test main.cpp BrokerServicesDelegateImpl.cpp)
 
 # Link required libraries
 target_link_libraries(sandbox_test
-    # base.dll.lib
-    # sandbox.lib
-    # libc++.dll.lib
-    # pe_image.lib
-    # third_party_abseil-cpp_absl.dll.lib
-    # third_party_perfetto_libperfetto.dll.lib
-    # third_party_boringssl.dll.lib
-    # third_party_zlib.dll.lib
-    # cppgen_plugin.lib
-    # protozero_plugin.lib
-    # base_allocator_partition_allocator_src_partition_alloc_raw_ptr.dll.lib
-    # base_allocator_partition_allocator_src_partition_alloc_allocator_shim.dll.lib
-    # base_allocator_partition_allocator_src_partition_alloc_allocator_core.dll.lib
-    # base_allocator_partition_allocator_src_partition_alloc_allocator_base.dll.lib
-    windows.0.52.0.lib
+    # Chromium Embedded Framework (CEF). Download from https://cef-builds.spotifycdn.com/index.html#windows64
+    cef_sandbox.lib
+    # Core Windows libraries
+    kernel32.lib
+    user32.lib
+    gdi32.lib
+    advapi32.lib
+    shell32.lib
+    ole32.lib
+    oleaut32.lib
+    uuid.lib
+    # Additional Windows libraries
+    winmm.lib          # for timeGetTime, timeBeginPeriod, timeEndPeriod
+    shlwapi.lib        # for IsOS
+    propsys.lib        # for InitPropVariantFromCLSID
+    powrprof.lib       # for PowerDeterminePlatformRoleEx
+    shcore.lib         # for SetProcessDpiAwareness
+    ntdll.lib          # for NtQueryObject, RtlInitUnicodeString, NtDeleteKey
+    setupapi.lib       # for SetupDiGetClassDevsW, SetupDiEnumDeviceInfo
+    cfgmgr32.lib       # for CM_Get_Device_IDW
+    version.lib        # for VerQueryValueW, GetFileVersionInfoSizeW, GetFileVersionInfoW
+    ws2_32.lib         # for ioctlsocket
+    runtimeobject.lib  # for RoGetActivationFactory
+    dbghelp.lib        # for Sym* functions (debug symbols)
+    userenv.lib        # for DeriveAppContainerSidFromAppContainerName
     delayimp.lib
     wbemuuid.lib
-    # common.lib
-    # service_resolver.lib
-    cef_sandbox.lib # Download from https://cef-builds.spotifycdn.com/index.html#windows64
+    mincore.lib
 )
-
-# Copy DLLs to executable directory
-# add_custom_command(TARGET sandbox_test POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#         "C:/src/chromium/src/out/sandbox_build/base.dll"
-#         "C:/src/chromium/src/out/sandbox_build/libc++.dll"
-#         "C:/src/chromium/src/out/sandbox_build/third_party_abseil-cpp_absl.dll"
-#         "C:/src/chromium/src/out/sandbox_build/third_party_perfetto_libperfetto.dll"
-#         "C:/src/chromium/src/out/sandbox_build/third_party_boringssl.dll"
-#         "C:/src/chromium/src/out/sandbox_build/third_party_zlib.dll"
-#         "C:/src/chromium/src/out/sandbox_build/base_allocator_partition_allocator_src_partition_alloc_raw_ptr.dll"
-#         "C:/src/chromium/src/out/sandbox_build/base_allocator_partition_allocator_src_partition_alloc_allocator_shim.dll"
-#         "C:/src/chromium/src/out/sandbox_build/base_allocator_partition_allocator_src_partition_alloc_allocator_core.dll"
-#         "C:/src/chromium/src/out/sandbox_build/base_allocator_partition_allocator_src_partition_alloc_allocator_base.dll"
-#         $<TARGET_FILE_DIR:sandbox_test>
-# )
