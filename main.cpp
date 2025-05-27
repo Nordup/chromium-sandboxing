@@ -37,7 +37,7 @@ int RunParent(int argc, wchar_t* argv[], sandbox::BrokerServices* broker_service
     }
 
     config->SetDesktop(sandbox::Desktop::kAlternateDesktop);
-    config->SetDelayedIntegrityLevel(sandbox::IntegrityLevel::INTEGRITY_LEVEL_LOW);
+    config->SetDelayedIntegrityLevel(sandbox::IntegrityLevel::INTEGRITY_LEVEL_UNTRUSTED);
 
     // Add additional rules here (ie: file access exceptions) like so:
     ret = config->AllowFileAccess(sandbox::FileSemantics::kAllowAny, L"C:\\Users\\Nordup\\Documents\\Projects\\C++\\sandboxing\\build\\Debug\\sandbox_log.txt");
